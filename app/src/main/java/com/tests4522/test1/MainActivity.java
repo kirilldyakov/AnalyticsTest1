@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
+import com.appsflyer.MultipleInstallBroadcastReceiver;
 
 import java.util.Map;
 
@@ -33,14 +34,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         AppsFlyerLib.getInstance().startTracking(this.getApplication(),"LmU9p3PTjhiLT8rMXVRmKS");
-        
+
+//        AppsFlyerLib.getInstance().setDebugLog(true);
+
+//        AppsFlyerLib.getInstance().startTracking(this.getApplication());
+
+        AppsFlyerLib.getInstance().setMinTimeBetweenSessions(10);
+
         webView = (WebView) findViewById(R.id.wvMain);
+
         tvResults = (TextView) findViewById(R.id.tvResults);
 
+        MultipleInstallBroadcastReceiver receiver = new MultipleInstallBroadcastReceiver();
 
-        loadDataFromUrl();
+
+
     }
 
     @Override
@@ -58,32 +67,38 @@ public class MainActivity extends AppCompatActivity {
                     results = results+ "attribute: " + attrName + " = " + map.get(attrName) +"\n";
 
                     Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = "+map.get(attrName));
+
+                    Log.d("TAG", "attribute: " + attrName + " = "+map.get(attrName));
                 }
 
                 showReport(results);
+                Toast.makeText(getApplicationContext(), map.toString(), Toast.LENGTH_LONG).show();
 
             }
 
             @Override
             public void onInstallConversionFailure(String s) {
+
                 String message = "error getting conversion data: " + s;
+
                 Log.d(AppsFlyerLib.LOG_TAG, message);
+
                 Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 
             }
 
             @Override
             public void onAppOpenAttribution(Map<String, String> map) {
-
+                Log.d(TAG, "onAppOpenAttribution: ");
             }
 
             @Override
             public void onAttributionFailure(String s) {
-
+                Log.d(TAG, "onAttributionFailure: ");
             }
         });
 
-        loadWWW(url3);
+        loadWWW(url1);
 
     }
 
