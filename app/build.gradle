@@ -7,9 +7,9 @@ android {
     defaultConfig {
         applicationId 'com.tests4522.test1'
         minSdkVersion 15
-        targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 26
+        versionCode 15
+        versionName "10.16.15"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

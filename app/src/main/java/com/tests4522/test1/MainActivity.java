@@ -3,6 +3,7 @@ package com.tests4522.test1;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.webkit.WebView;
@@ -12,7 +13,6 @@ import android.widget.Toast;
 
 import com.appsflyer.AppsFlyerConversionListener;
 import com.appsflyer.AppsFlyerLib;
-import com.appsflyer.MultipleInstallBroadcastReceiver;
 
 import java.util.Map;
 
@@ -20,11 +20,18 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     String TAG = "TAG";
 
-    String url1 = "http://www.google.com";
+    final String refKey = "referrer";
+
+    final String utm_campaign = "utm_campaign";
+    final String utm_source = "utm_source";
+    final String utm_medium = "utm_medium";
+
+    String url1 = "http://advancedenglishforprofessionals.com/verbs/images/wait1.gif";
     String url2 = "http://www.yandex.ru";
     String url3 = "https://ru.lipsum.com/";
 
-    String server_url = "http://1.arrrrrr.net/?{utm_campaign}&s2={utm_source}&s3={utm_medium}";
+    //String server_url = "http://1.arrrrrr.net/?{utm_campaign}&s2={utm_source}&s3={utm_medium}";
+    String server_url = "https://yandex.ru/search/?text=";
 
     private WebView webView;
     private TextView tvResults;
@@ -32,9 +39,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        AppsFlyerLib.getInstance().startTracking(this.getApplication(), "LmU9p3PTjhiLT8rMXVRmKS");
+        AppsFlyerLib.getInstance().startTracking(this.getApplication(), getString(R.string.AppsFlyerKey));
 
 //        AppsFlyerLib.getInstance().setDebugLog(true);
 
@@ -42,11 +50,10 @@ public class MainActivity extends AppCompatActivity {
 
         AppsFlyerLib.getInstance().setMinTimeBetweenSessions(10);
 
-        webView = (WebView) findViewById(R.id.wvMain);
+        webView = (WebView) findViewById(R.id.wvBrowser);
 
         tvResults = (TextView) findViewById(R.id.tvResults);
 
-        MultipleInstallBroadcastReceiver receiver = new MultipleInstallBroadcastReceiver();
 
     }
 
@@ -54,23 +61,34 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
+        initAppsFlyerListener();
+
+       // loadWWW(server_url + readSP(utm_campaign));
+
+    }
+
+    private void initAppsFlyerListener() {
+
         AppsFlyerLib.getInstance().registerConversionListener(this, new AppsFlyerConversionListener() {
             @Override
             public void onInstallConversionDataLoaded(Map<String, String> map) {
 
-                String results = "";
+                printAllAttributes(map);
 
-                for (String attrName : map.keySet()) {
 
-                    results = results + "attribute: " + attrName + " = " + map.get(attrName) + "\n";
+                    //if (readSP(utm_campaign).equalsIgnoreCase(getString(R.string.emptyString))) {
 
-                    Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = " + map.get(attrName));
+                        String refValue = map.get(refKey);
 
-                    Log.d("TAG", "attribute: " + attrName + " = " + map.get(attrName));
-                }
+                        Toast.makeText(getApplicationContext(), refKey + " " + refValue, Toast.LENGTH_LONG).show();
 
-                showReport(results);
-                Toast.makeText(getApplicationContext(), map.toString(), Toast.LENGTH_LONG).show();
+                        parseAndWriteRefAttrs(refValue);
+
+
+
+
+                loadWWW(server_url + readSP(utm_campaign));
+
 
             }
 
@@ -92,22 +110,41 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAttributionFailure(String s) {
+
                 Log.d(TAG, "onAttributionFailure: ");
             }
         });
+    }
 
-        loadWWW(url1);
+    private void parseAndWriteRefAttrs(String refValue) {
+        String[] attrs = refValue.split("_");
+        tvResults.append("refValue:|"+refValue+"|");
+        writeSP(utm_campaign, refValue);
+
+        if (attrs.length == 3) {
+
+            writeSP(utm_campaign, attrs[0]);
+
+            writeSP(utm_source, attrs[1]);
+
+            writeSP(utm_medium, attrs[2]);
+
+        }
+    }
+
+    private void printAllAttributes(Map<String, String> map) {
+        String results = "";
+
+        for (String attrName : map.keySet()) {
+
+            results = results + "attribute: " + attrName + " = " + map.get(attrName) + "\n";
+
+        }
+
+        tvResults.append(results);
 
     }
 
-    private void showReport(String rep) {
-        tvResults.setText(rep);
-    }
-
-
-    private void loadDataFromUrl() {
-
-    }
 
     private String makeTargetUrl(String input) {
         String utm_campaign = "";
@@ -128,42 +165,38 @@ public class MainActivity extends AppCompatActivity {
                     viewx.loadUrl(urlx);
                     return false;
                 }
+
+                @Override
+                public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                    super.onReceivedError(view, errorCode, description, failingUrl);
+                    webView.loadData("<html><body><div align=\"center\"><FONT SIZE=\"5\">Возникла ошибка подключения</FONT></div></body></html>", "text/html; charset=utf-8", "utf-8");
+                }
             });
 
         } catch (Exception e) {
+
 
             Log.d(TAG, e.getMessage()); //Get the Exception thrown.
 
         }
 
-////            webView.loadData("<HTML><BODY><H3><p align=\"center\">Возникла ошибки при загрузке страницы</p></H3></BODY></HTML>","text/html; charset=UTF-8",null);
-//        String txt = "<body><a href=\"market://details?id=com.google.earth\" target=\"_blank\">Download for Android</a></body>";
-//        txt = "<a href=\"tel:8(920)111-2222\">Call</a>";
-//        txt = "<a href=\"adcombo:8(920)111-2222\">Adcombo</a>";
-//        webView.loadData(txt,"text/html; charset=UTF-8",null);
-
     }
 
-
-    public void writeSP(String key, String value) {
-
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-
-        SharedPreferences.Editor editor = sharedPref.edit();
-
-        editor.putString(key, value);
-
-        editor.commit();
+    void writeSP(String key, String value) {
+        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor ed = sPref.edit();
+        ed.putString(key, value);
+        ed.commit();
     }
 
-    public String readSP(String key) {
+    String readSP(String key) {
+        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
+        String savedText = sPref.getString(key, "EMPTY");
+        return savedText;
+    }
 
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+    public void log(String l){
 
-        String emptyValue = getResources().getString(R.string.emptyString);
-
-        String result = sharedPref.getString(key, emptyValue);
-
-        return result;
     }
 }
+
