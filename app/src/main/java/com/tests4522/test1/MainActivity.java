@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     String url2 = "http://www.yandex.ru";
     String url3 = "https://ru.lipsum.com/";
 
-    String server_url =  "http://1.arrrrrr.net/?{utm_campaign}&s2={utm_source}&s3={utm_medium}";
+    String server_url = "http://1.arrrrrr.net/?{utm_campaign}&s2={utm_source}&s3={utm_medium}";
 
     private WebView webView;
     private TextView tvResults;
@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AppsFlyerLib.getInstance().startTracking(this.getApplication(),"LmU9p3PTjhiLT8rMXVRmKS");
+        AppsFlyerLib.getInstance().startTracking(this.getApplication(), "LmU9p3PTjhiLT8rMXVRmKS");
 
 //        AppsFlyerLib.getInstance().setDebugLog(true);
 
@@ -47,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
         tvResults = (TextView) findViewById(R.id.tvResults);
 
         MultipleInstallBroadcastReceiver receiver = new MultipleInstallBroadcastReceiver();
-
-
 
     }
 
@@ -64,11 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
                 for (String attrName : map.keySet()) {
 
-                    results = results+ "attribute: " + attrName + " = " + map.get(attrName) +"\n";
+                    results = results + "attribute: " + attrName + " = " + map.get(attrName) + "\n";
 
-                    Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = "+map.get(attrName));
+                    Log.d(AppsFlyerLib.LOG_TAG, "attribute: " + attrName + " = " + map.get(attrName));
 
-                    Log.d("TAG", "attribute: " + attrName + " = "+map.get(attrName));
+                    Log.d("TAG", "attribute: " + attrName + " = " + map.get(attrName));
                 }
 
                 showReport(results);
@@ -111,10 +109,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private String makeTargetUrl(String input){
-        String utm_campaign="";
-        String utm_source ="";
-        String utm_medium="";
+    private String makeTargetUrl(String input) {
+        String utm_campaign = "";
+        String utm_source = "";
+        String utm_medium = "";
         return utm_campaign;
     }
 
@@ -132,8 +130,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
 
             Log.d(TAG, e.getMessage()); //Get the Exception thrown.
 
@@ -159,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         editor.commit();
     }
 
-    public String readSP(String key){
+    public String readSP(String key) {
 
         SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
 
