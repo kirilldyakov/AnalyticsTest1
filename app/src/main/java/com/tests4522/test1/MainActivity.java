@@ -54,16 +54,18 @@ public class MainActivity extends AppCompatActivity {
 
         tvResults = (TextView) findViewById(R.id.tvResults);
 
-
+        log("57");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
+        log("64");
+
         initAppsFlyerListener();
 
-       // loadWWW(server_url + readSP(utm_campaign));
+        loadWWW(server_url + readSP(utm_campaign));
 
     }
 
@@ -73,23 +75,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInstallConversionDataLoaded(Map<String, String> map) {
 
-                printAllAttributes(map);
+                String refValue = map.get(refKey);
 
-
-                    //if (readSP(utm_campaign).equalsIgnoreCase(getString(R.string.emptyString))) {
-
-                        String refValue = map.get(refKey);
-
-                        Toast.makeText(getApplicationContext(), refKey + " " + refValue, Toast.LENGTH_LONG).show();
-
-                        parseAndWriteRefAttrs(refValue);
-
-
+                try {
+                    printAllAttributes(map);
+                } catch (Exception e){}
 
 
                 loadWWW(server_url + readSP(utm_campaign));
-
-
             }
 
             @Override
@@ -97,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
                 String message = "error getting conversion data: " + s;
 
-                Log.d(AppsFlyerLib.LOG_TAG, message);
+                log(message);
 
                 Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
 
@@ -105,31 +98,28 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAppOpenAttribution(Map<String, String> map) {
-                Log.d(TAG, "onAppOpenAttribution: ");
+                log("onAppOpenAttribution: ");
+                log(map.toString());
             }
 
             @Override
             public void onAttributionFailure(String s) {
 
-                Log.d(TAG, "onAttributionFailure: ");
+                log( "onAttributionFailure: ");
             }
         });
     }
 
     private void parseAndWriteRefAttrs(String refValue) {
         String[] attrs = refValue.split("_");
-        tvResults.append("refValue:|"+refValue+"|");
-        writeSP(utm_campaign, refValue);
 
-        if (attrs.length == 3) {
+        writeSP(utm_campaign, attrs[0]);
 
-            writeSP(utm_campaign, attrs[0]);
+        writeSP(utm_source, attrs[1]);
 
-            writeSP(utm_source, attrs[1]);
+        writeSP(utm_medium, attrs[2]);
 
-            writeSP(utm_medium, attrs[2]);
 
-        }
     }
 
     private void printAllAttributes(Map<String, String> map) {
@@ -138,6 +128,10 @@ public class MainActivity extends AppCompatActivity {
         for (String attrName : map.keySet()) {
 
             results = results + "attribute: " + attrName + " = " + map.get(attrName) + "\n";
+
+            if (attrName.contains("referrer")){
+                parseAndWriteRefAttrs(map.get(attrName));
+            }
 
         }
 
@@ -195,8 +189,8 @@ public class MainActivity extends AppCompatActivity {
         return savedText;
     }
 
-    public void log(String l){
-
+    public void log(String l) {
+        tvResults.append(l+"\n");
     }
 }
 
