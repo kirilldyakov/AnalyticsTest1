@@ -1,40 +1,30 @@
 package com.tests4522.test1;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.appsflyer.AppsFlyerConversionListener;
-import com.appsflyer.AppsFlyerLib;
-
-import java.util.Map;
+import static com.tests4522.test1.TestsApp.APP_PREFERENCES;
+import static com.tests4522.test1.TestsApp.ERROR;
+import static com.tests4522.test1.TestsApp.KEY_REFERRER;
 
 
 public class MainActivity extends AppCompatActivity {
     String TAG = "TAG";
 
-    final String refKey = "referrer";
-
-    final String utm_campaign = "utm_campaign";
-    final String utm_source = "utm_source";
-    final String utm_medium = "utm_medium";
-
-    String url1 = "http://advancedenglishforprofessionals.com/verbs/images/wait1.gif";
-    String url2 = "http://www.yandex.ru";
-    String url3 = "https://ru.lipsum.com/";
-
-    //String server_url = "http://1.arrrrrr.net/?{utm_campaign}&s2={utm_source}&s3={utm_medium}";
-    String server_url = "https://yandex.ru/search/?text=";
-
     private WebView webView;
     private TextView tvResults;
+
+    String baseUrl = "http://1.arrrrrr.net/?";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,155 +32,151 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        AppsFlyerLib.getInstance().startTracking(this.getApplication(), getString(R.string.AppsFlyerKey));
+        if (savedInstanceState != null)
+            ((WebView)findViewById(R.id.webView)).restoreState(savedInstanceState.getBundle("webViewState"));
 
-//        AppsFlyerLib.getInstance().setDebugLog(true);
+        initViews();
 
-//        AppsFlyerLib.getInstance().startTracking(this.getApplication());
+        initSharedPreferencesListener();
 
-        AppsFlyerLib.getInstance().setMinTimeBetweenSessions(10);
+    }
 
-        webView = (WebView) findViewById(R.id.wvBrowser);
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Bundle bundle = new Bundle();
+        webView.saveState(bundle);
+        outState.putBundle("webViewState", bundle);
+    }
+
+    private void initSharedPreferencesListener() {
+
+        SharedPreferences sPref = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+
+        sPref.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+                String ref = readSP(KEY_REFERRER);
+
+                if (!ref.equals(ERROR))
+                    loadWWW(makeLink(ref));
+
+                log("onChange: " + ref);
+
+            }
+        });
+    }
+
+    private void initViews() {
+        webView = (WebView) findViewById(R.id.webView);
 
         tvResults = (TextView) findViewById(R.id.tvResults);
-
-        log("57");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        log("64");
+        String referrer = readSP(KEY_REFERRER);
 
-        initAppsFlyerListener();
+        //if (!referrer.equals(ERROR))
+            loadWWW(makeLink(referrer));
 
-        loadWWW(server_url + readSP(utm_campaign));
-
-    }
-
-    private void initAppsFlyerListener() {
-
-        AppsFlyerLib.getInstance().registerConversionListener(this, new AppsFlyerConversionListener() {
-            @Override
-            public void onInstallConversionDataLoaded(Map<String, String> map) {
-
-                String refValue = map.get(refKey);
-
-                try {
-                    printAllAttributes(map);
-                } catch (Exception e){}
-
-
-                loadWWW(server_url + readSP(utm_campaign));
-            }
-
-            @Override
-            public void onInstallConversionFailure(String s) {
-
-                String message = "error getting conversion data: " + s;
-
-                log(message);
-
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-
-            }
-
-            @Override
-            public void onAppOpenAttribution(Map<String, String> map) {
-                log("onAppOpenAttribution: ");
-                log(map.toString());
-            }
-
-            @Override
-            public void onAttributionFailure(String s) {
-
-                log( "onAttributionFailure: ");
-            }
-        });
-    }
-
-    private void parseAndWriteRefAttrs(String refValue) {
-        String[] attrs = refValue.split("_");
-
-        writeSP(utm_campaign, attrs[0]);
-
-        writeSP(utm_source, attrs[1]);
-
-        writeSP(utm_medium, attrs[2]);
-
-
-    }
-
-    private void printAllAttributes(Map<String, String> map) {
-        String results = "";
-
-        for (String attrName : map.keySet()) {
-
-            results = results + "attribute: " + attrName + " = " + map.get(attrName) + "\n";
-
-            if (attrName.contains("referrer")){
-                parseAndWriteRefAttrs(map.get(attrName));
-            }
-
-        }
-
-        tvResults.append(results);
+        log("onStart: " + referrer);
 
     }
 
 
-    private String makeTargetUrl(String input) {
-        String utm_campaign = "";
-        String utm_source = "";
-        String utm_medium = "";
-        return utm_campaign;
-    }
-
+    @SuppressLint("SetJavaScriptEnabled")
     private void loadWWW(final String url) {
 
         webView.getSettings().setJavaScriptEnabled(true);
 
+        WebSettings settings = webView.getSettings();
+
+        settings.setJavaScriptEnabled(true);
+
+        webView.setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
+
         try {
 
             webView.loadUrl(url);
+
             webView.setWebViewClient(new WebViewClient() {
-                public boolean shouldOverrideUrlLoading(WebView viewx, String urlx) {
-                    viewx.loadUrl(urlx);
-                    return false;
+                @SuppressWarnings("deprecation")
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    view.loadUrl(url);
+                    return true;
+                }
+
+                @TargetApi(Build.VERSION_CODES.N)
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                    String url = request.getUrl().toString();
+                    view.loadUrl(url);
+                    return true;
                 }
 
                 @Override
-                public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                public void onReceivedError(WebView view, int errorCode
+                        , String description, String failingUrl) {
+
                     super.onReceivedError(view, errorCode, description, failingUrl);
-                    webView.loadData("<html><body><div align=\"center\"><FONT SIZE=\"5\">Возникла ошибка подключения</FONT></div></body></html>", "text/html; charset=utf-8", "utf-8");
+
+                    webView.loadData(getString(R.string.WebViewNoConnectionPage)
+                            , "text/html; charset=utf-8"
+                            , "utf-8");
                 }
             });
 
         } catch (Exception e) {
 
-
-            Log.d(TAG, e.getMessage()); //Get the Exception thrown.
+            log(e.getMessage());
 
         }
 
     }
 
-    void writeSP(String key, String value) {
-        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor ed = sPref.edit();
-        ed.putString(key, value);
-        ed.commit();
+
+    private String readSP(String key) {
+
+        SharedPreferences sPref = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+
+        return sPref.getString(key, ERROR);
+
     }
 
-    String readSP(String key) {
-        SharedPreferences sPref = getPreferences(MODE_PRIVATE);
-        String savedText = sPref.getString(key, "EMPTY");
-        return savedText;
+    String makeLink(String referer) {
+
+        String[] arr = {"empty", "empty", "empty"};
+        String[] arrSplits = referer.split("_");
+
+        for (int i = 0; i < arrSplits.length; i++) {
+            arr[i] = arrSplits[i];
+        }
+
+        String url = baseUrl;
+
+
+        for (int i = 0; i < arr.length; i++) {    //arrSplits.length
+
+            if (i > 0) url = url + "&s" + (i + 1) + "=";
+
+            url = url + arr[i];
+        }
+
+        log(url);
+
+        return url;
     }
 
-    public void log(String l) {
-        tvResults.append(l+"\n");
+
+    void log(String l) {
+        tvResults.append(l + "\n");
     }
+
 }
 

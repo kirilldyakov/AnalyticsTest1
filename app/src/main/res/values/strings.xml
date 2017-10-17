@@ -3,4 +3,6 @@
     <string name="emptyString">empty</string>
     <string name="crash_toast_text">Возникла ошибка</string>
     <string name="AppsFlyerKey">LmU9p3PTjhiLT8rMXVRmKS</string>
+    <string name="error">error</string>
+    <string name="WebViewNoConnectionPage"><![CDATA[<html><body><div align=\"center\"><FONT SIZE=\"5\">Возникла ошибка подключения</FONT></div></body></html>]]></string>
 </resources>
