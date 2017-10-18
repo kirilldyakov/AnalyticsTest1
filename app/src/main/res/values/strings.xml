@@ -5,4 +5,8 @@
     <string name="AppsFlyerKey">LmU9p3PTjhiLT8rMXVRmKS</string>
     <string name="error">error</string>
     <string name="WebViewNoConnectionPage"><![CDATA[<html><body><div align=\"center\"><FONT SIZE=\"5\">Возникла ошибка подключения</FONT></div></body></html>]]></string>
+    <string name="default_notification_channel_id">ch_testn1</string>
+    <string name="default_notification_channel_name">channel_name</string>
+    <string name="msg_subscribed">Подписано</string>
+
 </resources>
